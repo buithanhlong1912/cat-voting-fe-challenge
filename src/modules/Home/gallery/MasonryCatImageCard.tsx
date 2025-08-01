@@ -1,13 +1,25 @@
 import React, { memo, useMemo } from 'react';
+import { HandThumbUpIcon, HandThumbDownIcon } from '@heroicons/react/24/solid';
+import { ArrowPathIcon } from '@heroicons/react/24/outline';
 import type { CatImage } from '../../../types/cat.types';
-import { LoadingSpinner } from '../../../components/ui';
 import { useLazyImage } from '../../../hooks';
+import { useOptimisticVoting } from '../../../queries/useVotes';
+import { useDebouncedCallback } from '../../../utils/performance';
+import { LoadingSpinner } from '../../../components/ui';
 
 interface MasonryCatImageCardProps {
   image: CatImage;
 }
 
-export const MasonryCatImageCard: React.FC<MasonryCatImageCardProps> = memo(({ image }) => {  
+export const MasonryCatImageCard: React.FC<MasonryCatImageCardProps> = memo(({ image }) => {
+  const {
+    vote,
+    retry,
+    hasVoted,
+    userVote,
+    isError,
+  } = useOptimisticVoting(image.id);
+  
   const {
     imgRef,
     src,
@@ -24,6 +36,29 @@ export const MasonryCatImageCard: React.FC<MasonryCatImageCardProps> = memo(({ i
     }
     return 1; // Default square if no dimensions
   }, [image.width, image.height]);
+
+  // Debounce voting to prevent accidental double-clicks
+  const debouncedVote = useDebouncedCallback(async (value: 1 | -1) => {
+    if (hasVoted && !isError) return;
+    
+    try {
+      await vote(value);
+    } catch (error) {
+      // Error handling is done by the optimistic voting hook
+      console.error('Vote failed:', error);
+    }
+  }, 300);
+
+  // Memoize vote status
+  const voteStatus = useMemo(() => {
+    if (!hasVoted || !userVote) return null;
+    
+    return {
+      isUpvote: userVote.value === 1,
+      text: userVote.value === 1 ? 'Upvoted' : 'Downvoted',
+      icon: userVote.value === 1 ? '👍' : '👎',
+    };
+  }, [hasVoted, userVote]);
 
   return (
     <article className="image-card relative bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden group cursor-pointer">
@@ -57,6 +92,66 @@ export const MasonryCatImageCard: React.FC<MasonryCatImageCardProps> = memo(({ i
             onError={handleError}
             loading="lazy"
           />
+        )}
+
+        {/* Vote Status Badge - Show only when voted and no error */}
+        {voteStatus && !isError && (
+          <div className={`vote-status ${voteStatus.isUpvote ? 'vote-status-up' : 'vote-status-down'}`}>
+            {voteStatus.icon} {voteStatus.text}
+          </div>
+        )}
+
+        {/* Error Status Badge */}
+        {isError && (
+          <div className="vote-status vote-status-error">
+            ⚠️ Failed
+          </div>
+        )}
+
+        {/* Voting Overlay - Show on hover when not voted OR when there's an error */}
+        {(!hasVoted || isError) && (
+          <div className="voting-overlay">
+            <div className="voting-buttons">
+              {isError ? (
+                <button
+                  className="vote-button vote-button-retry group"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    retry();
+                  }}
+                  aria-label="Retry vote"
+                >
+                  <ArrowPathIcon className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform duration-200" />
+                  <span className="font-bold">Retry</span>
+                </button>
+              ) : (
+                <>
+                  <button
+                    className="vote-button vote-button-up group"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      debouncedVote(1);
+                    }}
+                    aria-label="Vote up"
+                  >
+                    <HandThumbUpIcon className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform duration-200" />
+                    <span className="font-bold">Up</span>
+                  </button>
+                  <button
+                    className="vote-button vote-button-down group"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      debouncedVote(-1);
+                    }}
+                    aria-label="Vote down"
+                  >
+                    <HandThumbDownIcon className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform duration-200" />
+                    <span className="font-bold">Down</span>
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
         )}
       </div>
 
