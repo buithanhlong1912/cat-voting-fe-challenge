@@ -7,3 +7,61 @@
     font-family: 'Inter', system-ui, sans-serif;
   }
 }
+
+@layer components {
+  /* Masonry Grid Styles */
+  .masonry-grid {
+    display: flex;
+    margin-left: -1.5rem; /* gutter size offset */
+    width: auto;
+  }
+
+  .masonry-grid-column {
+    padding-left: 1.5rem; /* gutter size */
+    background-clip: padding-box;
+  }
+
+  .masonry-grid-column > div {
+    margin-bottom: 1.5rem; /* Increased spacing between images */
+  }
+
+  /* Smooth hover animations */
+  .image-card {
+    margin-bottom: 1.5rem;
+    @apply transition-all duration-300 ease-out;
+  }
+
+  .image-card:hover {
+    @apply transform -translate-y-1 shadow-2xl;
+  }
+
+  /* Voting overlay */
+  .voting-overlay {
+    @apply absolute inset-0 bg-black bg-opacity-0 flex items-center justify-center opacity-0 transition-all duration-300 ease-out;
+  }
+
+  .image-card:hover .voting-overlay {
+    @apply bg-opacity-40 opacity-100;
+  }
+
+  /* Voting buttons */
+  .voting-buttons {
+    @apply flex gap-4 transform translate-y-6 transition-all duration-300 ease-out;
+  }
+
+  .image-card:hover .voting-buttons {
+    @apply translate-y-0;
+  }
+
+  /* Enhanced image loading animation */
+  .image-loading {
+    @apply animate-pulse bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700;
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+}
