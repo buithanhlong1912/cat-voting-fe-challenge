@@ -1,7 +1,7 @@
 import React, { memo, useState, useCallback } from 'react';
 import { LoadingSpinner } from '../../../components/ui';
 import { useOptimisticVoting } from '../../../queries/useVotes';
-import { VotingButton } from '../../voting/VotingButton';
+import { VotingButton } from '../voting/VotingButton';
 import type { CatImage } from '../../../types/cat.types';
 
 interface CatImageCardProps {

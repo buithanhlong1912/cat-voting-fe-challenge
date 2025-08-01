@@ -116,6 +116,29 @@
     transform: translateY(-2px) scale(1.1);
   }
 
+  /* Mobile optimizations */
+  @media (max-width: 768px) {
+    .vote-button {
+      @apply px-3 py-2 text-xs gap-1;
+    }
+    
+    .vote-button svg {
+      @apply w-4 h-4;
+    }
+    
+    .voting-buttons {
+      @apply gap-3;
+    }
+    
+    .vote-status {
+      @apply top-3 right-3 px-2 py-1 text-xs;
+    }
+    
+    .masonry-grid-column > div {
+      margin-bottom: 1rem;
+    }
+  }
+
   /* Enhanced image loading animation */
   .image-loading {
     @apply animate-pulse bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700;
