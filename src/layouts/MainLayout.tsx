@@ -1,9 +1,8 @@
 import React, { useEffect } from 'react';
 import { Footer } from './Footer';
-import { ToastContainer } from '../components/ui/ToastContainer';
-import { ErrorBoundary } from '../components/ui/ErrorBoundary';
+import { ToastContainer, ErrorBoundary } from '../components/ui';
 import { useUIStore } from '../store/uiStore';
-import { useToast } from '../hooks/useToast';
+import { useToast } from '../hooks';
 import { Header } from './Header';
 import { Navigation } from './Navigation';
 
