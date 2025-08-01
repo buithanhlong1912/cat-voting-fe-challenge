@@ -1,5 +1,7 @@
 import React, { memo, useState, useCallback } from 'react';
 import { LoadingSpinner } from '../../../components/ui';
+import { useOptimisticVoting } from '../../../queries/useVotes';
+import { VotingButton } from '../../voting/VotingButton';
 import type { CatImage } from '../../../types/cat.types';
 
 interface CatImageCardProps {
@@ -8,8 +10,27 @@ interface CatImageCardProps {
 
 export const CatImageCard: React.FC<CatImageCardProps> = memo(({ image }) => {
   const [imageLoading, setImageLoading] = useState(true);
-  const [imageError, setImageError] = useState(false);  
+  const [imageError, setImageError] = useState(false);
   
+  const {
+    vote,
+    retry,
+    hasVoted,
+    userVote,
+    isError,
+  } = useOptimisticVoting(image.id);
+  
+  const handleVote = useCallback(async (value: 1 | -1) => {
+    if (hasVoted && !isError) return;
+    
+    try {
+      await vote(value);
+    } catch (error) {
+      // Error handling is done by the optimistic voting hook
+      console.error('Vote failed:', error);
+    }
+  }, [hasVoted, isError, vote]);
+
   const handleImageLoad = useCallback(() => {
     setImageLoading(false);
   }, []);
@@ -47,6 +68,49 @@ export const CatImageCard: React.FC<CatImageCardProps> = memo(({ image }) => {
             onError={handleImageError}
             loading="lazy" // Native lazy loading
           />
+        )}
+      </div>
+
+      {/* Voting Section */}
+      <div className="p-4">
+        <div className="flex gap-3 mb-3">
+          <VotingButton
+            type="up"
+            isVoted={hasVoted && !isError}
+            isCurrentVote={userVote?.value === 1}
+            onClick={() => handleVote(1)}
+            hasError={isError && userVote?.value === 1}
+            onRetry={retry}
+          />
+          <VotingButton
+            type="down"
+            isVoted={hasVoted && !isError}
+            isCurrentVote={userVote?.value === -1}
+            onClick={() => handleVote(-1)}
+            hasError={isError && userVote?.value === -1}
+            onRetry={retry}
+          />
+        </div>
+
+        {/* Vote Status */}
+        {hasVoted && userVote && !isError && (
+          <div className="text-center">
+            <div className={`text-sm font-medium ${
+              userVote.value === 1 ? 'text-green-600' : 'text-red-600'
+            }`}>
+              You voted {userVote.value === 1 ? 'Up' : 'Down'}! 
+              {userVote.value === 1 ? ' 👍' : ' 👎'}
+            </div>
+          </div>
+        )}
+
+        {/* Error Status */}
+        {isError && (
+          <div className="text-center">
+            <div className="text-sm font-medium text-red-600">
+              Vote failed. Click retry to try again.
+            </div>
+          </div>
         )}
       </div>
     </div>
